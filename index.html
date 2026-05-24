@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>웹스토리 통합 분배 대시보드</title>
-    <!-- 외부 스타일시트 및 스크립트 연결 -->
     <link rel="stylesheet" href="style.css">
     <script defer src="config.js"></script>
     <script defer src="app.js"></script>
@@ -17,62 +16,20 @@
         <p style="color: var(--text-sub); margin: 0;">작품 등록 및 하드웨어 구성 커스텀 패널</p>
     </header>
 
-    <!-- 입력 및 설정 영역 -->
     <div class="input-section">
-        <!-- 접이식 커스텀 설정 패널 -->
         <div class="accordion-toggle" onclick="toggleConfigPanel()">
             <span>⚙️ PC 그룹 및 계정 범위 설정 (클릭하여 열기/접기)</span>
             <span id="accordionArrow">▼</span>
         </div>
         <div class="accordion-content" id="configPanel">
-            <div class="config-grid">
-                <!-- 메인 PC 세팅 -->
-                <div class="config-card">
-                    <h4>🖥️ 메인 PC 그룹 설정</h4>
-                    <div class="config-row">
-                        <label>그룹명</label>
-                        <input type="text" id="cfgMainName" value="MainPC">
-                    </div>
-                    <div class="config-row">
-                        <label>계정범위</label>
-                        <input type="number" id="cfgMainStart" value="1" style="width:70px;">
-                        <span>~</span>
-                        <input type="number" id="cfgMainEnd" value="3" style="width:70px;">
-                    </div>
-                </div>
-                <!-- 서브 PC 1 세팅 -->
-                <div class="config-card">
-                    <h4>⚡ 서브 PC 그룹 1 설정</h4>
-                    <div class="config-row">
-                        <label>그룹명</label>
-                        <input type="text" id="cfgSub1Name" value="SubPC1">
-                    </div>
-                    <div class="config-row">
-                        <label>계정범위</label>
-                        <input type="number" id="cfgSub1Start" value="4" style="width:70px;">
-                        <span>~</span>
-                        <input type="number" id="cfgSub1End" value="6" style="width:70px;">
-                    </div>
-                </div>
-                <!-- 서브 PC 2 세팅 -->
-                <div class="config-card">
-                    <h4>❄️ 서브 PC 그룹 2 설정</h4>
-                    <div class="config-row">
-                        <label>그룹명</label>
-                        <input type="text" id="cfgSub2Name" value="SubPC2">
-                    </div>
-                    <div class="config-row">
-                        <label>계정범위</label>
-                        <input type="number" id="cfgSub2Start" value="7" style="width:70px;">
-                        <span>~</span>
-                        <input type="number" id="cfgSub2End" value="8" style="width:70px;">
-                    </div>
-                </div>
+            <div class="config-grid" id="configContainer"></div>
+            
+            <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="btn-add-group" onclick="addConfigGroupUI()">➕ PC 그룹 추가</button>
+                <p style="font-size: 11px; color:#64748b; margin: 0;">※ 설정값은 브라우저에 자동 저장되며 신규 등록 시 반영됩니다.</p>
             </div>
-            <p style="font-size: 11px; color:#64748b; margin: 8px 0 0 0; text-align: right;">※ 설정값은 브라우저에 자동 저장되며 신규 등록 시 반영됩니다.</p>
         </div>
 
-        <!-- 기본 정보 입력창 -->
         <div class="grid-inputs">
             <div class="form-group">
                 <label for="title">작품명</label>
@@ -94,14 +51,12 @@
         <button class="btn-submit" onclick="addArtwork()">새 작품 등록 및 자동 분배</button>
     </div>
 
-    <!-- 진행중인 작품 -->
     <div class="section-title">
         <span>⏳ 열람 진행 중인 작품</span>
         <span class="count-badge" id="ongoingCount">0개</span>
     </div>
     <div class="card-grid" id="ongoingGrid"></div>
 
-    <!-- 완료된 작품 -->
     <div class="section-title" style="margin-top: 50px;">
         <span>✅ 완전히 완료된 작품</span>
         <span class="count-badge" id="completedCount">0개</span>

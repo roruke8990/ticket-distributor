@@ -14,25 +14,39 @@ function addArtwork() {
     if (!title) { alert('작품명을 입력해주세요.'); return; }
     if (start > end) { alert('시작 화수가 종료 화수보다 클 수 없습니다.'); return; }
 
+    // [요구사항 1] 유료화수의 분배는 역순우선(내림차순)으로 진행합니다.
+    // i를 end부터 start까지 거꾸로 담아 리스트 최상단에 유료회차가 강제 위치하게 만듭니다.
     let episodes = [];
-    for (let i = start; i <= end; i++) episodes.push(i);
+    for (let i = end; i >= start; i--) {
+        episodes.push(i);
+    }
 
     const totalNeeded = episodes.length;
 
-    // 설정된 계정 그룹 범위 수집
+    // [요구사항 2] 동적 변환된 sysConfig.groups를 기반으로 계정 수집
+    // 첫 번째 그룹은 메인 계정, 그 이후 그룹들은 모두 서브 그룹 계정으로 분리
     let mainAccounts = [];
-    for(let i = sysConfig.main.start; i <= sysConfig.main.end; i++) mainAccounts.push(i);
+    let allSubAccounts = []; // 모든 서브 계정을 순서대로 병합 보관할 배열
+    let subGroupLists = [];  // 각 서브 그룹별 내부 계정 배열 리스트
 
-    let groupA = [];
-    for(let i = sysConfig.sub1.start; i <= sysConfig.sub1.end; i++) groupA.push(i);
+    sysConfig.groups.forEach((group, idx) => {
+        let currentGroupAccs = [];
+        for(let i = group.start; i <= group.end; i++) {
+            currentGroupAccs.push(i);
+        }
+        
+        if (idx === 0) {
+            mainAccounts = currentGroupAccs;
+        } else {
+            allSubAccounts = allSubAccounts.concat(currentGroupAccs);
+            subGroupLists.push(currentGroupAccs);
+        }
+    });
 
-    let groupB = [];
-    for(let i = sysConfig.sub2.start; i <= sysConfig.sub2.end; i++) groupB.push(i);
-
-    const subCapacity = (groupA.length + groupB.length) * tickets;
+    const subCapacity = allSubAccounts.length * tickets;
 
     // 통합 맵 구성을 위한 전체 계정 리스트업 정렬
-    let allConfiguredAccounts = [...mainAccounts, ...groupA, ...groupB].sort((a,b) => a-b);
+    let allConfiguredAccounts = [...mainAccounts, ...allSubAccounts].sort((a, b) => a - b);
     let minAccountNum = Math.min(...allConfiguredAccounts);
     let maxAccountNum = Math.max(...allConfiguredAccounts);
 
@@ -41,23 +55,22 @@ function addArtwork() {
         accountMap[i] = [];
     }
 
-    // 조건 분기 배정 알고리즘
+    // 조건 분기 배정 알고리즘 (동적 서브 그룹 대응 균등 분배)
     if (subCapacity >= totalNeeded) {
         let neededAccountsCount = Math.ceil(totalNeeded / tickets);
-        let takeFromA = Math.ceil(neededAccountsCount / 2);
-        let takeFromB = neededAccountsCount - takeFromA;
-
-        if (takeFromA > groupA.length) {
-            takeFromA = groupA.length;
-            takeFromB = neededAccountsCount - takeFromA;
-        } else if (takeFromB > groupB.length) {
-            takeFromB = groupB.length;
-            takeFromA = neededAccountsCount - takeFromB;
-        }
-
         let activeSubAccounts = [];
-        for (let i = 0; i < takeFromA; i++) if(groupA[i]) activeSubAccounts.push(groupA[i]);
-        for (let i = 0; i < takeFromB; i++) if(groupB[i]) activeSubAccounts.push(groupB[i]);
+
+        if (subGroupLists.length > 0) {
+            // 여러 서브 그룹간에 계정을 한 개씩 라운드로빈 방식으로 균등하게 징집합니다.
+            let maxLen = Math.max(...subGroupLists.map(g => g.length));
+            for (let i = 0; i < maxLen; i++) {
+                for (let g = 0; g < subGroupLists.length; g++) {
+                    if (subGroupLists[g][i] && activeSubAccounts.length < neededAccountsCount) {
+                        activeSubAccounts.push(subGroupLists[g][i]);
+                    }
+                }
+            }
+        }
 
         let epIdx = 0;
         for (let acc of activeSubAccounts) {
@@ -69,6 +82,7 @@ function addArtwork() {
             }
         }
     } else {
+        // 용량 부족 시 메인 포함 전체 PC에 순차적 분배
         let epIdx = 0;
         for (let acc of allConfiguredAccounts) {
             for (let t = 0; t < tickets; t++) {
@@ -86,23 +100,24 @@ function addArtwork() {
         let pcGroupName = '';
         let pcGroupClass = '';
 
-        if (acc >= sysConfig.main.start && acc <= sysConfig.main.end) {
-            pcGroupName = sysConfig.main.name;
-            pcGroupClass = 'main-pc';
-        } else if (acc >= sysConfig.sub1.start && acc <= sysConfig.sub1.end) {
-            pcGroupName = sysConfig.sub1.name;
-            pcGroupClass = 'sub-pc1';
-        } else if (acc >= sysConfig.sub2.start && acc <= sysConfig.sub2.end) {
-            pcGroupName = sysConfig.sub2.name;
-            pcGroupClass = 'sub-pc2';
-        }
+        // 계정이 어떤 그룹 범위에 속하는지 동적 인덱스 기반 검사
+        sysConfig.groups.forEach((group, idx) => {
+            if (acc >= group.start && acc <= group.end) {
+                pcGroupName = group.name;
+                // 인덱스 기반으로 동적 클래스 부여 (main-pc, sub-pc1, sub-pc2, sub-pc3...)
+                pcGroupClass = idx === 0 ? 'main-pc' : `sub-pc${idx}`;
+            }
+        });
+
+        // 렌더링을 위해 각 계정에 들어간 회차 데이터를 보기 편하게 오름차순으로 재정렬
+        let sortedAccEps = accountMap[acc] ? [...accountMap[acc]].sort((a,b) => a-b) : [];
 
         distribution.push({
             account: acc,
             pcGroup: pcGroupName,
             pcClass: pcGroupClass,
-            episodes: accountMap[acc] || [],
-            hasEpisodes: accountMap[acc] && accountMap[acc].length > 0,
+            episodes: sortedAccEps,
+            hasEpisodes: sortedAccEps.length > 0,
             isDone: false
         });
     });
@@ -110,7 +125,7 @@ function addArtwork() {
     const newArtwork = {
         id: Date.now(),
         title: title,
-        range: `${start}화 ~ ${end}화 (계정당 ${tickets}장 분배)`,
+        range: `${start}화 ~ ${end}화 (계정당 ${tickets}장 분배 / 역순 우선)`,
         distribution: distribution
     };
 
