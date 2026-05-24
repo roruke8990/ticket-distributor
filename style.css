@@ -1,4 +1,323 @@
-/* [CSS 기존 내용 유지보수 및 하단 추가 분량] */
+:root {
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --primary: #3498db;
+    --primary-hover: #2980b9;
+    --accent: #2ecc71;
+    --text-main: #2c3e50;
+    --text-sub: #7f8c8d;
+    --border: #e2e8f0;
+    
+    /* 기본 PC 그룹 색상 */
+    --main-pc-bg: #fff9db;
+    --sub-pc1-bg: #e6fcf5;
+    --sub-pc2-bg: #e7f5ff;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+}
+
+/* 등록 및 설정 섹션 */
+.input-section {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.grid-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #4a5568;
+}
+
+.form-group input {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* 접이식 패널 (Collapse) 스타일 */
+.accordion-toggle {
+    background: #edf2f7;
+    color: #4a5568;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    border: 1px solid var(--border);
+}
+
+.accordion-toggle:hover {
+    background: #e2e8f0;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+    background: #f1f5f9;
+    border-radius: 6px;
+    padding: 0 15px;
+}
+
+.accordion-content.open {
+    max-height: 500px; 
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #cbd5e1;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.config-card {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.config-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: var(--text-main);
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 4px;
+}
+
+.config-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.config-row label {
+    font-size: 12px;
+    min-width: 50px;
+}
+
+.config-row input {
+    padding: 5px;
+    font-size: 13px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    width: 100%;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+}
+
+/* 섹션 타이틀 */
+.section-title {
+    font-size: 20px;
+    border-left: 5px solid var(--primary);
+    padding-left: 10px;
+    margin: 30px 0 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.count-badge {
+    background: #e2e8f0;
+    font-size: 13px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    color: var(--text-main);
+}
+
+/* 카드 레이아웃 */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+.artwork-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.artwork-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.completed-section .artwork-card {
+    opacity: 0.8;
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-right: 25px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    word-break: break-all;
+}
+
+.card-meta {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-bottom: 15px;
+}
+
+.btn-delete {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #e11d48;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+/* 계정 리스트 */
+.account-list {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.account-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* PC 동적 배정 컬러 클래스 */
+.account-item.main-pc { background-color: var(--main-pc-bg); border-color: #ffe066; }
+.account-item.sub-pc1 { background-color: var(--sub-pc1-bg); border-color: #96f2d7; }
+.account-item.sub-pc2 { background-color: var(--sub-pc2-bg); border-color: #a5d8ff; }
+
+.account-item.checked {
+    text-decoration: line-through;
+    opacity: 0.4;
+    background-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+}
+
+.account-item.unassigned {
+    opacity: 0.25;
+    background-color: #f8f9fa !important;
+    border: 1px dashed #cbd5e1 !important;
+}
+
+.account-item input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.acc-info {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+}
+
+.episode-badge {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.episode-badge.none {
+    font-weight: normal;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.empty-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4px 0;
+    color: var(--text-sub);
+    font-size: 14px;
+}
+
+
 
 /* 추가 그룹 생성 및 삭제 유틸리티 버튼 스타일 */
 .btn-add-group {
