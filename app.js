@@ -14,82 +14,53 @@ function addArtwork() {
     if (!title) { alert('작품명을 입력해주세요.'); return; }
     if (start > end) { alert('시작 화수가 종료 화수보다 클 수 없습니다.'); return; }
 
-    // [요구사항 1] 유료화수의 분배는 역순우선(내림차순)으로 진행합니다.
-    // i를 end부터 start까지 거꾸로 담아 리스트 최상단에 유료회차가 강제 위치하게 만듭니다.
-    let episodes = [];
-    for (let i = end; i >= start; i--) {
-        episodes.push(i);
-    }
+    // 작업해야 할 총 화수 계산
+    const totalNeeded = end - start + 1;
 
-    const totalNeeded = episodes.length;
-
-    // [요구사항 2] 동적 변환된 sysConfig.groups를 기반으로 계정 수집
-    // 첫 번째 그룹은 메인 계정, 그 이후 그룹들은 모두 서브 그룹 계정으로 분리
-    let mainAccounts = [];
-    let allSubAccounts = []; // 모든 서브 계정을 순서대로 병합 보관할 배열
-    let subGroupLists = [];  // 각 서브 그룹별 내부 계정 배열 리스트
-
-    sysConfig.groups.forEach((group, idx) => {
-        let currentGroupAccs = [];
-        for(let i = group.start; i <= group.end; i++) {
-            currentGroupAccs.push(i);
-        }
-        
-        if (idx === 0) {
-            mainAccounts = currentGroupAccs;
-        } else {
-            allSubAccounts = allSubAccounts.concat(currentGroupAccs);
-            subGroupLists.push(currentGroupAccs);
+    // 설정된 전체 계정 목록 수집 (메인 + 서브 그룹 모두 통합)
+    let allConfiguredAccounts = [];
+    sysConfig.groups.forEach(group => {
+        for (let i = group.start; i <= group.end; i++) {
+            allConfiguredAccounts.push(i);
         }
     });
 
-    const subCapacity = allSubAccounts.length * tickets;
+    // 중복 제거 및 오름차순 정렬 (계정 번호 순)
+    allConfiguredAccounts = [...new Set(allConfiguredAccounts)].sort((a, b) => a - b);
 
-    // 통합 맵 구성을 위한 전체 계정 리스트업 정렬
-    let allConfiguredAccounts = [...mainAccounts, ...allSubAccounts].sort((a, b) => a - b);
-    let minAccountNum = Math.min(...allConfiguredAccounts);
-    let maxAccountNum = Math.max(...allConfiguredAccounts);
+    // [전체 이용권 보유량 계산] 전체 계정 수 * 계정당 이용권 수
+    const totalCapacity = allConfiguredAccounts.length * tickets;
 
-    let accountMap = {};
-    for (let i = minAccountNum; i <= maxAccountNum; i++) {
-        accountMap[i] = [];
-    }
-
-    // 조건 분기 배정 알고리즘 (동적 서브 그룹 대응 균등 분배)
-    if (subCapacity >= totalNeeded) {
-        let neededAccountsCount = Math.ceil(totalNeeded / tickets);
-        let activeSubAccounts = [];
-
-        if (subGroupLists.length > 0) {
-            // 여러 서브 그룹간에 계정을 한 개씩 라운드로빈 방식으로 균등하게 징집합니다.
-            let maxLen = Math.max(...subGroupLists.map(g => g.length));
-            for (let i = 0; i < maxLen; i++) {
-                for (let g = 0; g < subGroupLists.length; g++) {
-                    if (subGroupLists[g][i] && activeSubAccounts.length < neededAccountsCount) {
-                        activeSubAccounts.push(subGroupLists[g][i]);
-                    }
-                }
-            }
-        }
-
-        let epIdx = 0;
-        for (let acc of activeSubAccounts) {
-            for (let t = 0; t < tickets; t++) {
-                if (epIdx < totalNeeded) {
-                    accountMap[acc].push(episodes[epIdx]);
-                    epIdx++;
-                }
-            }
+    // 분배할 회차 리스트 생성 결정
+    let episodes = [];
+    
+    if (totalCapacity >= totalNeeded) {
+        // [조건 1] 이용권이 충분하여 전 회차 분배가 가능한 경우 -> 오름차순 분배
+        for (let i = start; i <= end; i++) {
+            episodes.push(i);
         }
     } else {
-        // 용량 부족 시 메인 포함 전체 PC에 순차적 분배
-        let epIdx = 0;
-        for (let acc of allConfiguredAccounts) {
-            for (let t = 0; t < tickets; t++) {
-                if (epIdx < totalNeeded) {
-                    accountMap[acc].push(episodes[epIdx]);
-                    epIdx++;
-                }
+        // [조건 2] 이용권이 부족하여 전체 분배가 불가능한 경우 -> 역순(내림차순) 우선 분배
+        for (let i = end; i >= start; i--) {
+            episodes.push(i);
+        }
+    }
+
+    // 빈 계정 맵 초기화
+    let accountMap = {};
+    allConfiguredAccounts.forEach(acc => {
+        accountMap[acc] = [];
+    });
+
+    // 순차적 분배 알고리즘 (1번 계정부터 순서대로 티켓 수만큼 채우기)
+    let epIdx = 0;
+    for (let acc of allConfiguredAccounts) {
+        for (let t = 0; t < tickets; t++) {
+            if (epIdx < totalNeeded) {
+                accountMap[acc].push(episodes[epIdx]);
+                epIdx++;
+            } else {
+                break;
             }
         }
     }
@@ -104,13 +75,12 @@ function addArtwork() {
         sysConfig.groups.forEach((group, idx) => {
             if (acc >= group.start && acc <= group.end) {
                 pcGroupName = group.name;
-                // 인덱스 기반으로 동적 클래스 부여 (main-pc, sub-pc1, sub-pc2, sub-pc3...)
                 pcGroupClass = idx === 0 ? 'main-pc' : `sub-pc${idx}`;
             }
         });
 
-        // 렌더링을 위해 각 계정에 들어간 회차 데이터를 보기 편하게 오름차순으로 재정렬
-        let sortedAccEps = accountMap[acc] ? [...accountMap[acc]].sort((a,b) => a-b) : [];
+        // 렌더링을 위해 각 계정에 들어간 회차 데이터를 보기 편하게 오름차순으로 항상 재정렬
+        let sortedAccEps = accountMap[acc] ? [...accountMap[acc]].sort((a, b) => a - b) : [];
 
         distribution.push({
             account: acc,
@@ -122,10 +92,14 @@ function addArtwork() {
         });
     });
 
+    // 대시보드 표시용 안내 문구 설정
+    const isShortage = totalCapacity < totalNeeded;
+    const rangeText = `${start}화 ~ ${end}화 (계정당 ${tickets}장 분배 / ${isShortage ? '용량부족·역순우선' : '전체순차·오름차순'})`;
+
     const newArtwork = {
         id: Date.now(),
         title: title,
-        range: `${start}화 ~ ${end}화 (계정당 ${tickets}장 분배 / 역순 우선)`,
+        range: rangeText,
         distribution: distribution
     };
 
